@@ -15,26 +15,26 @@ const (
 
 type pingChannel chan struct{}
 
-type server struct {
+type Server struct {
 	router  *mux.Router
 	port    string
 	running sync.Mutex
 	stop    pingChannel
 }
 
-// NewServer creates and returns a new server
-func NewServer(r *mux.Router, port string) *server {
-	return &server{
+// NewServer creates and returns a new Server
+func NewServer(r *mux.Router, port string) *Server {
+	return &Server{
 		port: port,
 	}
 }
 
-func (s *server) setupRoutes() {
+func (s *Server) setupRoutes() {
 	r := mux.NewRouter()
 	setupRoutes(s, r)
 }
 
-func (s *server) serve() {
+func (s *Server) serve() {
 	hs := &http.Server{
 		Addr:           localhost + ":" + s.port,
 		Handler:        s.router,
@@ -48,7 +48,7 @@ func (s *server) serve() {
 	}
 }
 
-func (s *server) SetupHTTP() {
+func (s *Server) SetupHTTP() {
 	s.setupRoutes()
 	s.serve()
 }
