@@ -25,7 +25,7 @@ type SimData struct {
 }
 
 func start(r *http.Request, s *Server, rideID string) {
-	logrus.Info("start recieved")
+	logrus.Info("start received")
 	s.running.Store(true)
 
 	logrus.Infof("Received request from: %s", r.RemoteAddr)
