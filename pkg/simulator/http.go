@@ -2,7 +2,7 @@ package simulator
 
 import (
 	"net/http"
-	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/gorilla/mux"
@@ -13,29 +13,39 @@ const (
 	localhost = "0.0.0.0"
 )
 
+var (
+	// PING can be used to ping a pingChannel
+	PING = struct{}{}
+)
+
 type pingChannel chan struct{}
 
 // Server is a simulator server + internal data for state.
 type Server struct {
-	router  *mux.Router
-	port    string
-	running sync.Mutex
-	stop    pingChannel
+	router     *mux.Router
+	client     *http.Client // keep a common http client to make requests
+	port       string
+	running    atomic.Value
+	stop       pingChannel
+	remoteAddr string
 }
 
 // NewServer creates and returns a new Server
 func NewServer(port string) *Server {
 	return &Server{
 		port: port,
+		client: &http.Client{
+			Timeout: 5 * time.Second, // keep sane timeouts
+		},
+		stop: make(pingChannel),
 	}
 }
 
-func (s *Server) setupRoutes() {
-	r := mux.NewRouter()
-	setupRoutes(s, r)
-}
+// SetupHTTP starts serving HTTP apis.
+func (s *Server) SetupHTTP() {
+	s.router = mux.NewRouter()
+	setupRoutes(s)
 
-func (s *Server) serve() {
 	hs := &http.Server{
 		Addr:           localhost + ":" + s.port,
 		Handler:        s.router,
@@ -47,10 +57,4 @@ func (s *Server) serve() {
 	if err := hs.ListenAndServe(); err != nil {
 		logrus.WithError(err).Fatal()
 	}
-}
-
-// SetupHTTP starts serving HTTP apis.
-func (s *Server) SetupHTTP() {
-	s.setupRoutes()
-	s.serve()
 }

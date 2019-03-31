@@ -1,6 +1,7 @@
 package simulator
 
 import (
+	"bytes"
 	"encoding/json"
 	"math/rand"
 	"net/http"
@@ -24,8 +25,11 @@ type SimData struct {
 }
 
 func start(r *http.Request, s *Server, rideID string) {
-	s.running.Lock()
-	defer s.running.Unlock()
+	logrus.Info("start recieved")
+	s.running.Store(true)
+
+	logrus.Infof("Received request from: %s", r.RemoteAddr)
+	s.remoteAddr = r.RemoteAddr
 
 	// read from request, lat lon
 	decoder := json.NewDecoder(r.Body)
@@ -35,38 +39,27 @@ func start(r *http.Request, s *Server, rideID string) {
 		logrus.WithError(err).Fatal("Failed to parse JSON")
 	}
 
-	generator, closer := makeGenerator(rideID, loc.Lat, loc.Lon)
-
-	for {
-		select {
-		case data := <-generator:
-			if err = postJSON(data); err != nil {
-				logrus.WithError(err).Fatal("Failed to post JSON")
-			}
-		case <-s.stop:
-			closer <- struct{}{}
-
-		}
-	}
-
+	go runGenerator(s, rideID, loc.Lat, loc.Lon)
 }
 
-func makeGenerator(rideID string, lat, lon float64) (chan SimData, chan struct{}) {
+func runGenerator(s *Server, rideID string, lat, lon float64) {
 	rand.Seed(time.Now().UnixNano())
 
 	output := make(chan SimData)
-	closer := make(chan struct{})
+	closer := make(pingChannel)
 
 	go func(rideID string, lat, lon float64) {
 		curLoc := geo.NewPoint(lat, lon)
+		tick := time.NewTicker(10 * time.Nanosecond)
 
 	FORLOOP:
 		for {
 			select {
 			case <-closer:
+				tick.Stop()
 				break FORLOOP
-			default:
-				rDist := float64(rand.Intn(10000)) / 1000.0
+			case <-tick.C:
+				rDist := float64(rand.Intn(100000)) / 1000.0
 				rBear := float64(rand.Intn(36000)) / 100.0
 				curLoc = curLoc.PointAtDistanceAndBearing(rDist, rBear)
 				output <- SimData{RideID: rideID, Lat: curLoc.Lat(), Lon: curLoc.Lng()}
@@ -74,10 +67,35 @@ func makeGenerator(rideID string, lat, lon float64) (chan SimData, chan struct{}
 		}
 	}(rideID, lat, lon)
 
-	return output, closer
+	for {
+		select {
+		case data := <-output:
+			if err := postJSON(s.client, s.remoteAddr, data); err != nil {
+				logrus.WithError(err).Fatal("Failed to post JSON")
+			}
+		case <-s.stop:
+			closer <- PING
+		}
+	}
 }
 
-func postJSON(data SimData) error {
-	// TODO: APwhitehat
-	return nil
+func postJSON(c *http.Client, remote string, data SimData) error {
+	jsonData, err := json.Marshal(data)
+	if err != nil {
+		logrus.WithError(err).Fatal("Failed to send request")
+	}
+
+	req, err := http.NewRequest(http.MethodPost, `http://`+remote+"/sensorData", bytes.NewBuffer(jsonData))
+	if err != nil {
+		logrus.WithError(err).Warn("Failed to make request")
+		return err
+	}
+
+	req.Header.Set("Content-Type", "application/json")
+	resp, err := c.Do(req)
+	if err != nil {
+		logrus.WithError(err).Fatal("Failed to send request")
+	}
+
+	return resp.Body.Close()
 }
