@@ -15,6 +15,7 @@ const (
 
 type pingChannel chan struct{}
 
+// Server is a simulator server + internal data for state.
 type Server struct {
 	router  *mux.Router
 	port    string
@@ -23,7 +24,7 @@ type Server struct {
 }
 
 // NewServer creates and returns a new Server
-func NewServer(r *mux.Router, port string) *Server {
+func NewServer(port string) *Server {
 	return &Server{
 		port: port,
 	}
@@ -48,6 +49,7 @@ func (s *Server) serve() {
 	}
 }
 
+// SetupHTTP starts serving HTTP apis.
 func (s *Server) SetupHTTP() {
 	s.setupRoutes()
 	s.serve()
