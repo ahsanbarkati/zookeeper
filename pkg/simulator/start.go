@@ -48,7 +48,7 @@ func runGenerator(s *Server, rideID string, lat, lon float64) {
 	output := make(chan SimData)
 	closer := make(pingChannel)
 
-	go func(rideID string, lat, lon float64) {
+	go func() {
 		curLoc := geo.NewPoint(lat, lon)
 		tick := time.NewTicker(10 * time.Nanosecond)
 
@@ -65,7 +65,7 @@ func runGenerator(s *Server, rideID string, lat, lon float64) {
 				output <- SimData{RideID: rideID, Lat: curLoc.Lat(), Lon: curLoc.Lng()}
 			}
 		}
-	}(rideID, lat, lon)
+	}()
 
 	for {
 		select {
