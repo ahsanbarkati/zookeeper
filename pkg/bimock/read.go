@@ -1,16 +1,16 @@
 package bimock
 
 import (
-	"net/http"
+	"encoding/json"
 	"fmt"
 	"github.com/sirupsen/logrus"
-	"encoding/json"
+	"net/http"
 )
 
 type sensorData struct {
 	RideID string
-	Lat float64
-	Lon float64
+	Lat    float64
+	Lon    float64
 }
 
 func readData(r *http.Request, s *Server, rideID string) {

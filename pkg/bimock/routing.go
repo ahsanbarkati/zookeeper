@@ -1,9 +1,9 @@
 package bimock
 
 import (
-	"net/http"
-	"github.com/sirupsen/logrus"
 	"github.com/gorilla/mux"
+	"github.com/sirupsen/logrus"
+	"net/http"
 )
 
 func setupRoutes(s *Server) {
@@ -19,7 +19,7 @@ func setupRoutes(s *Server) {
 		rideID := vars["rideID"]
 
 		if err := requestRide(r, s, rideID); err != nil {
-				logrus.WithError(err).Fatal("Failed to request ride")
-			}
+			logrus.WithError(err).Fatal("Failed to request ride")
+		}
 	}).Methods(http.MethodGet, http.MethodOptions)
 }

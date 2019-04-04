@@ -1,10 +1,10 @@
 package bimock
 
 import (
-	"net/http"
-	"encoding/json"
 	"bytes"
+	"encoding/json"
 	"github.com/sirupsen/logrus"
+	"net/http"
 )
 
 type location struct {
@@ -12,15 +12,19 @@ type location struct {
 	lon float64
 }
 
-func requestRide(r *http.Request, s *Server, rideID string) error  {
+func requestRide(r *http.Request, s *Server, rideID string) error {
 	logrus.Info("ride requested")
 	client := s.client
 	sourceLoc := location{
-		lat:15,
-		lon:12}
+		lat: 15,
+		lon: 12}
 
 	jsonData, err := json.Marshal(sourceLoc)
-	request, err := http.NewRequest(http.MethodGet, "http://127.0.0.1:10000/start/" + rideID, bytes.NewBuffer(jsonData))
+	if err != nil {
+		logrus.WithError(err).Fatal("Failed to do json marshal")
+	}
+
+	request, err := http.NewRequest(http.MethodGet, "http://127.0.0.1:10000/start/"+rideID, bytes.NewBuffer(jsonData))
 	if err != nil {
 		logrus.WithError(err).Fatal("Unable to make start request")
 	}
