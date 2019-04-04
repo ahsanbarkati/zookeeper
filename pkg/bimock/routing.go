@@ -2,7 +2,7 @@ package bimock
 
 import (
 	"net/http"
-
+	"github.com/sirupsen/logrus"
 	"github.com/gorilla/mux"
 )
 
@@ -18,6 +18,8 @@ func setupRoutes(s *Server) {
 		vars := mux.Vars(r)
 		rideID := vars["rideID"]
 
-		requestRide(r, s, rideID)
+		if err := requestRide(r, s, rideID); err != nil {
+				logrus.WithError(err).Fatal("Failed to request ride")
+			}
 	}).Methods(http.MethodGet, http.MethodOptions)
 }

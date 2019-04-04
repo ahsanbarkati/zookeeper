@@ -6,7 +6,6 @@ import (
 	"math/rand"
 	"net/http"
 	"time"
-
 	geo "github.com/kellydunn/golang-geo"
 	"github.com/sirupsen/logrus"
 )
@@ -43,6 +42,7 @@ func start(r *http.Request, s *Server, rideID string) {
 }
 
 func runGenerator(s *Server, rideID string, lat, lon float64) {
+	logrus.Info("starting runGenerator")
 	rand.Seed(time.Now().UnixNano())
 
 	output := make(chan SimData)
@@ -84,8 +84,7 @@ func postJSON(c *http.Client, remote string, data SimData) error {
 	if err != nil {
 		logrus.WithError(err).Fatal("Failed to send request")
 	}
-
-	req, err := http.NewRequest(http.MethodPost, `http://`+remote+"/sensorData", bytes.NewBuffer(jsonData))
+	req, err := http.NewRequest(http.MethodPost, "http://127.0.0.1:9000/sensorData/" + data.RideID, bytes.NewBuffer(jsonData))
 	if err != nil {
 		logrus.WithError(err).Warn("Failed to make request")
 		return err
