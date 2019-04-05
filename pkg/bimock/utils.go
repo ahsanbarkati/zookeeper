@@ -74,6 +74,9 @@ func getDistance(collection *(mongo.Collection)) float64 {
 	}
 
 	// Close the cursor once finished
-	cur.Close(context.TODO())
+	err = cur.Close(context.TODO())
+	if err != nil {
+		logrus.WithError(err).Fatal("Failed to close cursor")
+	}
 	return dist
 }

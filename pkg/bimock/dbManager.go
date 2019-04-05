@@ -10,6 +10,7 @@ import (
 )
 
 type insData struct {
+	RideID    string
 	TimeStamp int64
 	Lat       float64
 	Lon       float64
