@@ -3,35 +3,41 @@ package bimock
 import (
 	"bytes"
 	"encoding/json"
-	"github.com/sirupsen/logrus"
 	"net/http"
+
+	"github.com/sirupsen/logrus"
 )
 
+//struct sent to simulator, port is to specify the callback point to simulator
 type location struct {
-	lat float64
-	lon float64
+	Lat  float64
+	Lon  float64
+	Port string
 }
 
 func requestRide(r *http.Request, s *Server, rideID string) error {
 	logrus.Info("ride requested")
 	client := s.client
 	sourceLoc := location{
-		lat: 15,
-		lon: 12}
+		Lat:  15,
+		Lon:  12,
+		Port: s.port}
 
 	jsonData, err := json.Marshal(sourceLoc)
 	if err != nil {
 		logrus.WithError(err).Fatal("Failed to do json marshal")
 	}
+	reqURL := "http://0.0.0.0:10000/start/" + rideID
 
-	request, err := http.NewRequest(http.MethodGet, "http://127.0.0.1:10000/start/"+rideID, bytes.NewBuffer(jsonData))
+	request, err := http.NewRequest(http.MethodGet, reqURL, bytes.NewBuffer(jsonData))
 	if err != nil {
 		logrus.WithError(err).Fatal("Unable to make start request")
 	}
 	request.Header.Set("Content-Type", "application/json")
+
 	resp, err := client.Do(request)
 	if err != nil {
-		logrus.WithError(err).Fatal("Unable to make start request client")
+		logrus.WithError(err).Fatal("Bimock client's request failed")
 	}
 	return resp.Body.Close()
 	// TODO

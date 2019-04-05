@@ -3,8 +3,9 @@ package bimock
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/sirupsen/logrus"
 	"net/http"
+
+	"github.com/sirupsen/logrus"
 )
 
 type sensorData struct {
@@ -15,7 +16,6 @@ type sensorData struct {
 
 func readData(r *http.Request, s *Server, rideID string) {
 	// TODO
-	fmt.Println("reading")
 	decoder := json.NewDecoder(r.Body)
 	var data sensorData
 	err := decoder.Decode(&data)
