@@ -27,7 +27,7 @@ func requestRide(r *http.Request, s *Server, rideID string) error {
 	if err != nil {
 		logrus.WithError(err).Fatal("Failed to do json marshal")
 	}
-	reqURL := "http://0.0.0.0:10000/start/" + rideID
+	reqURL := "http://0.0.0.0:1000" + string((s.port)[3]) + "/start/" + rideID
 
 	request, err := http.NewRequest(http.MethodGet, reqURL, bytes.NewBuffer(jsonData))
 	if err != nil {
