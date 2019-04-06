@@ -11,7 +11,7 @@ import (
 func main() {
 	runtime.GOMAXPROCS(runtime.NumCPU())
 
-	port := flag.String("p", "9000", "Port")
+	port := flag.String("p", "10000", "Port")
 
 	flag.Parse()
 	if port == nil {

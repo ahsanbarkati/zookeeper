@@ -13,8 +13,9 @@ import (
 
 // StartRequest is the JSON format of request body.
 type StartRequest struct {
-	Lat float64
-	Lon float64
+	Lat  float64
+	Lon  float64
+	Port string
 }
 
 // SimData is a instance of data which is sent back to bimock.
@@ -25,24 +26,24 @@ type SimData struct {
 }
 
 func start(r *http.Request, s *Server, rideID string) {
-	logrus.Info("start received")
 	s.running.Store(true)
 
-	logrus.Infof("Received request from: %s", r.RemoteAddr)
 	s.remoteAddr = r.RemoteAddr
 
 	// read from request, lat lon
 	decoder := json.NewDecoder(r.Body)
-	var loc StartRequest
-	err := decoder.Decode(&loc)
+	var sReq StartRequest
+	err := decoder.Decode(&sReq)
 	if err != nil {
 		logrus.WithError(err).Fatal("Failed to parse JSON")
 	}
 
-	go runGenerator(s, rideID, loc.Lat, loc.Lon)
+	logrus.Infof("Received request from port: %s, rideID: %s", sReq.Port, rideID)
+
+	go runGenerator(s, rideID, sReq.Port, sReq.Lat, sReq.Lon)
 }
 
-func runGenerator(s *Server, rideID string, lat, lon float64) {
+func runGenerator(s *Server, rideID string, bimockPort string, lat, lon float64) {
 	rand.Seed(time.Now().UnixNano())
 
 	output := make(chan SimData)
@@ -50,7 +51,7 @@ func runGenerator(s *Server, rideID string, lat, lon float64) {
 
 	go func() {
 		curLoc := geo.NewPoint(lat, lon)
-		tick := time.NewTicker(10 * time.Nanosecond)
+		tick := time.NewTicker(2 * time.Second)
 
 	FORLOOP:
 		for {
@@ -70,7 +71,7 @@ func runGenerator(s *Server, rideID string, lat, lon float64) {
 	for {
 		select {
 		case data := <-output:
-			if err := postJSON(s.client, s.remoteAddr, data); err != nil {
+			if err := postJSON(s.client, bimockPort, data); err != nil {
 				logrus.WithError(err).Fatal("Failed to post JSON")
 			}
 		case <-s.stop:
@@ -79,13 +80,13 @@ func runGenerator(s *Server, rideID string, lat, lon float64) {
 	}
 }
 
-func postJSON(c *http.Client, remote string, data SimData) error {
+func postJSON(c *http.Client, bimockPort string, data SimData) error {
 	jsonData, err := json.Marshal(data)
 	if err != nil {
 		logrus.WithError(err).Fatal("Failed to send request")
 	}
-
-	req, err := http.NewRequest(http.MethodPost, `http://`+remote+"/sensorData", bytes.NewBuffer(jsonData))
+	reqURL := "http://0.0.0.0:" + bimockPort + "/sensorData/" + data.RideID
+	req, err := http.NewRequest(http.MethodPost, reqURL, bytes.NewBuffer(jsonData))
 	if err != nil {
 		logrus.WithError(err).Warn("Failed to make request")
 		return err

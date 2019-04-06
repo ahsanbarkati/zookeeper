@@ -32,7 +32,8 @@ func NewServer(port string) *Server {
 // SetupHTTP starts serving HTTP apis.
 func (s *Server) SetupHTTP() {
 	s.router = mux.NewRouter()
-	setupRoutes(s)
+	collection := setupDB(s.port)
+	setupRoutes(s, collection)
 
 	hs := &http.Server{
 		Addr:           localhost + ":" + s.port,
