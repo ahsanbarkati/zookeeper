@@ -19,7 +19,6 @@ type sensorData struct {
 var ctr = 0
 
 func readData(r *http.Request, s *Server, rideID string, collection *(mongo.Collection)) {
-	// TODO
 	decoder := json.NewDecoder(r.Body)
 	var data sensorData
 	err := decoder.Decode(&data)
@@ -30,7 +29,8 @@ func readData(r *http.Request, s *Server, rideID string, collection *(mongo.Coll
 		RideID:    data.RideID,
 		TimeStamp: int64(time.Now().Unix()),
 		Lat:       data.Lat,
-		Lon:       data.Lon}
+		Lon:       data.Lon,
+	}
 
 	insertToDB(collection, dataToInsert)
 

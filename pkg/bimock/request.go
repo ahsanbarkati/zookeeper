@@ -39,6 +39,6 @@ func requestRide(r *http.Request, s *Server, rideID string) error {
 	if err != nil {
 		logrus.WithError(err).Fatal("Bimock client's request failed")
 	}
+
 	return resp.Body.Close()
-	// TODO
 }

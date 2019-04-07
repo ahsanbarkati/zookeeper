@@ -32,8 +32,13 @@ func composeData(collection *(mongo.Collection)) rideInfo {
 		log.Fatal(err)
 	}
 
-	var results []*insData
+	defer func() {
+		if err = cur.Close(context.Background()); err != nil {
+			logrus.WithError(err).Fatal("Failed to close cursor")
+		}
+	}()
 
+	var results []*insData
 	for cur.Next(context.TODO()) {
 		var elem insData
 		err = cur.Decode(&elem)
@@ -46,11 +51,6 @@ func composeData(collection *(mongo.Collection)) rideInfo {
 
 	if err = cur.Err(); err != nil {
 		log.Fatal(err)
-	}
-
-	err = cur.Close(context.TODO())
-	if err != nil {
-		logrus.WithError(err).Fatal("Failed to close cursor")
 	}
 
 	rideinfo := rideInfo{
@@ -69,5 +69,4 @@ func composeData(collection *(mongo.Collection)) rideInfo {
 	}
 
 	return rideinfo
-
 }

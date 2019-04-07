@@ -12,9 +12,7 @@ import (
 )
 
 func endRide(s *Server, collection *(mongo.Collection), rideID string) {
-
-	timer := time.NewTimer(10 * time.Second)
-	<-timer.C
+	time.Sleep(10 * time.Second)
 
 	// data := composeData(collection)
 	// Send this to backend
@@ -32,13 +30,17 @@ func endRide(s *Server, collection *(mongo.Collection), rideID string) {
 		logrus.WithError(err).Fatal("Failed to send request")
 	}
 
+	// defer resp close to avoid leaks.
+	defer func() {
+		if err = resp.Body.Close(); err != nil {
+			logrus.WithError(err).Fatal("Failed to close Response Body")
+		}
+	}()
+
 	_, err = collection.DeleteMany(context.TODO(), bson.D{{}})
 	if err != nil {
 		logrus.WithError(err).Fatal("Failed to delete")
 	}
-	err = resp.Body.Close()
-	if err != nil {
-		logrus.WithError(err).Fatal("Failed to close Response Body")
-	}
+
 	logrus.Info("Ride Ended")
 }
