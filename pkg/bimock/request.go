@@ -21,7 +21,8 @@ func requestRide(r *http.Request, s *Server, rideID string) error {
 	sourceLoc := location{
 		Lat:  15,
 		Lon:  12,
-		Port: s.port}
+		Port: s.port,
+	}
 
 	jsonData, err := json.Marshal(sourceLoc)
 	if err != nil {

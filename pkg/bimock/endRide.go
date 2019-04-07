@@ -3,6 +3,7 @@ package bimock
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"net/http"
 	"time"
 
@@ -11,11 +12,10 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
+const backendURL = "localhost:8080"
+
 func endRide(s *Server, collection *(mongo.Collection), rideID string) {
 	time.Sleep(10 * time.Second)
-
-	// data := composeData(collection)
-	// Send this to backend
 
 	reqURL := "http://0.0.0.0:1000" + string((s.port)[3]) + "/stop/" + rideID
 	req, err := http.NewRequest(http.MethodGet, reqURL, bytes.NewBuffer(nil))
@@ -37,10 +37,35 @@ func endRide(s *Server, collection *(mongo.Collection), rideID string) {
 		}
 	}()
 
+	// save data to be sent to backend
+	data := composeData(collection)
 	_, err = collection.DeleteMany(context.TODO(), bson.D{{}})
 	if err != nil {
-		logrus.WithError(err).Fatal("Failed to delete")
+		logrus.WithError(err).Fatal("Failed to delete collection")
 	}
 
 	logrus.Info("Ride Ended")
+
+	jsonData, err := json.Marshal(data)
+	if err != nil {
+		logrus.WithError(err).Fatal("Failed to do marshal json")
+	}
+
+	reqURL = backendURL
+	req, err = http.NewRequest(http.MethodPost, reqURL, bytes.NewBuffer(jsonData))
+	if err != nil {
+		logrus.WithError(err).Fatal("http request creation failed")
+	}
+	req.Header.Set("Content-Type", "application/json")
+
+	resp, err = c.Do(req)
+	if err != nil {
+		logrus.WithError(err).Fatal("Failed to POST Ride JSON")
+	}
+
+	if err = resp.Body.Close(); err != nil {
+		logrus.WithError(err).Warn("Failed to close response, possible memmory leak")
+	}
+
+	logrus.Info("Ride JSON POST succeded")
 }
