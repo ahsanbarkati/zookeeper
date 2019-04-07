@@ -2,7 +2,6 @@ package bimock
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"time"
 
@@ -15,8 +14,6 @@ type sensorData struct {
 	Lat    float64
 	Lon    float64
 }
-
-var ctr = 0
 
 func readData(r *http.Request, s *Server, rideID string, collection *(mongo.Collection)) {
 	decoder := json.NewDecoder(r.Body)
@@ -33,14 +30,4 @@ func readData(r *http.Request, s *Server, rideID string, collection *(mongo.Coll
 	}
 
 	insertToDB(collection, dataToInsert)
-
-	if ctr == 3 {
-		cdata := composeData(collection)
-		fmt.Println(cdata)
-	}
-
-	ctr += 1
-	//TODO:
-	// cdata := composeData(collection) use this to generate final json for it to
-	// the node server, this needs to be called on ride completion.
 }
