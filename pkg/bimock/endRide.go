@@ -67,5 +67,5 @@ func endRide(s *Server, collection *(mongo.Collection), rideID string) {
 		logrus.WithError(err).Warn("Failed to close response, possible memmory leak")
 	}
 
-	logrus.Info("Ride JSON POST succeded")
+	logrus.Info("Ride JSON POST succeeded")
 }
