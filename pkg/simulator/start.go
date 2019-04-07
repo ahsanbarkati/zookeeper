@@ -53,12 +53,12 @@ func runGenerator(s *Server, rideID string, bimockPort string, lat, lon float64)
 		curLoc := geo.NewPoint(lat, lon)
 		tick := time.NewTicker(2 * time.Second)
 
-	FORLOOP:
+	FORGENERATOR:
 		for {
 			select {
 			case <-closer:
 				tick.Stop()
-				break FORLOOP
+				break FORGENERATOR
 			case <-tick.C:
 				rDist := float64(rand.Intn(100000)) / 1000.0
 				rBear := float64(rand.Intn(36000)) / 100.0
@@ -68,6 +68,7 @@ func runGenerator(s *Server, rideID string, bimockPort string, lat, lon float64)
 		}
 	}()
 
+FORSELECT:
 	for {
 		select {
 		case data := <-output:
@@ -76,6 +77,7 @@ func runGenerator(s *Server, rideID string, bimockPort string, lat, lon float64)
 			}
 		case <-s.stop:
 			closer <- PING
+			break FORSELECT
 		}
 	}
 }
