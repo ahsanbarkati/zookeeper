@@ -10,21 +10,21 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-type coordinates struct {
+type Coordinates struct {
 	Lat float64
 	Lon float64
 }
-type rideInfo struct {
-	src       coordinates
-	dest      coordinates
-	startTime int64
-	endTime   int64
-	rideID    string
-	distance  float64
+type RideInfo struct {
+	Src       Coordinates
+	Dest      Coordinates
+	StartTime int64
+	EndTime   int64
+	RideID    string
+	Distance  float64
 }
 
 //returns all the data in the collection as array of pointers
-func composeData(collection *(mongo.Collection)) rideInfo {
+func composeData(collection *(mongo.Collection)) RideInfo {
 	findOptions := options.Find()
 
 	cur, err := collection.Find(context.TODO(), bson.D{{}}, findOptions)
@@ -53,19 +53,19 @@ func composeData(collection *(mongo.Collection)) rideInfo {
 		log.Fatal(err)
 	}
 
-	rideinfo := rideInfo{
-		rideID: (*results[0]).RideID,
-		src: coordinates{
+	rideinfo := RideInfo{
+		RideID: (*results[0]).RideID,
+		Src: Coordinates{
 			Lat: (*results[0]).Lat,
 			Lon: (*results[0]).Lon,
 		},
-		dest: coordinates{
+		Dest: Coordinates{
 			Lat: (*results[len(results)-1]).Lat,
 			Lon: (*results[len(results)-1]).Lon,
 		},
-		startTime: (*results[0]).TimeStamp,
-		endTime:   (*results[len(results)-1]).TimeStamp,
-		distance:  getDistance(collection),
+		StartTime: (*results[0]).TimeStamp,
+		EndTime:   (*results[len(results)-1]).TimeStamp,
+		Distance:  getDistance(collection),
 	}
 
 	return rideinfo

@@ -12,10 +12,10 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-const backendURL = "localhost:8080"
+const backendURL = "http://localhost:11000/rout/endRide"
 
 func endRide(s *Server, collection *(mongo.Collection), rideID string) {
-	time.Sleep(10 * time.Second)
+	time.Sleep(4 * time.Second)
 
 	reqURL := "http://0.0.0.0:1000" + string((s.port)[3]) + "/stop/" + rideID
 	req, err := http.NewRequest(http.MethodGet, reqURL, bytes.NewBuffer(nil))
@@ -47,6 +47,8 @@ func endRide(s *Server, collection *(mongo.Collection), rideID string) {
 	logrus.Info("Ride Ended")
 
 	jsonData, err := json.Marshal(data)
+	logrus.Info(jsonData)
+
 	if err != nil {
 		logrus.WithError(err).Fatal("Failed to do marshal json")
 	}
