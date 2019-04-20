@@ -22,5 +22,8 @@ func setupRoutes(s *Server, collection *(mongo.Collection)) {
 		if err := requestRide(r, s, rideID); err != nil {
 			logrus.WithError(err).Fatal("Failed to request ride")
 		}
+
+		go endRide(s, collection, rideID)
+
 	}).Methods(http.MethodGet, http.MethodOptions)
 }

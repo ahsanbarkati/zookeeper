@@ -52,6 +52,12 @@ func getDistance(collection *(mongo.Collection)) float64 {
 	if err != nil {
 		logrus.WithError(err).Fatal("Failed to create cursor")
 	}
+	defer func() {
+		// Close the cursor once finished
+		if err = cur.Close(context.Background()); err != nil {
+			logrus.WithError(err).Fatal("Failed to close cursor")
+		}
+	}()
 
 	// Iterate through the cursor
 	var prev, curr insData
@@ -73,10 +79,5 @@ func getDistance(collection *(mongo.Collection)) float64 {
 		logrus.WithError(err).Fatal("Failed to close cursor")
 	}
 
-	// Close the cursor once finished
-	err = cur.Close(context.TODO())
-	if err != nil {
-		logrus.WithError(err).Fatal("Failed to close cursor")
-	}
 	return dist
 }

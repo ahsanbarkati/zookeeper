@@ -19,7 +19,7 @@ type insData struct {
 func setupDB(port string) *(mongo.Collection) {
 	clientOptions := options.Client().ApplyURI("mongodb://localhost:27017")
 
-	client, err := mongo.Connect(context.TODO(), clientOptions)
+	client, err := mongo.Connect(context.Background(), clientOptions)
 	if err != nil {
 		logrus.WithError(err).Fatal("Failed to Connect to MongoDB")
 	}

@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 
-sh -c "./bin/bimock -p=9001 &\
+sh -c "./bin/bimock -p=9000 &\
+./bin/bimock -p=9001 &\
 ./bin/bimock -p=9002 &\
 ./bin/bimock -p=9003 &\
 ./bin/bimock -p=9004 &\
@@ -8,5 +9,4 @@ sh -c "./bin/bimock -p=9001 &\
 ./bin/bimock -p=9006 &\
 ./bin/bimock -p=9007 &\
 ./bin/bimock -p=9009 &\
-./bin/bimock -p=9010 &\
 wait"
